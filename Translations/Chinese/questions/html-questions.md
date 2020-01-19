@@ -1,6 +1,6 @@
 # HTML 问题
 
-本章节是[前端开发者面试问题 - HTML 部分](https://github.com/h5bp/Front-end-Developer-Interview-Questions#html-questions)的参考答案。 欢迎提出 PR 进行建议和指正！
+本章节是[前端开发者面试问题 - HTML 部分](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/src/questions/html-questions.md)的参考答案。 欢迎提出 PR 进行建议和指正！
 
 * [`DOCTYPE`有什么用？](#doctype有什么用)
 * [如何提供包含多种语言内容的页面？](#如何提供包含多种语言内容的页面)
@@ -95,7 +95,7 @@
 
 |                                                    | `cookie`                                           | `localStorage` | `sessionStorage` |
 | -------------------------------------------------- | -------------------------------------------------- | -------------- | ---------------- |
-| 由谁初始化                                         | 客户端或服务器，服务器可以使用`Set-Cookie`请求头。 | 客户端         | 客户端           |
+| 由谁初始化                                         | 服务器，服务器可以使用`Set-Cookie`请求头。 | 客户端         | 客户端           |
 | 过期时间                                           | 手动设置                                           | 永不过期       | 当前页面关闭时   |
 | 在当前浏览器会话（browser sessions）中是否保持不变 | 取决于是否设置了过期时间                           | 是             | 否               |
 | 是否随着每个 HTTP 请求发送给服务器                 | 是，Cookies 会通过`Cookie`请求头，自动发送给服务器 | 否             | 否               |

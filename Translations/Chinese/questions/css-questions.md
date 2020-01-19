@@ -1,6 +1,6 @@
 # CSS 问题
 
-本章节是[前端开发者面试问题 - CSS 部分](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/questions/css-questions.md)的参考答案。 欢迎提出 PR 进行建议和指正！
+本章节是[前端开发者面试问题 - CSS 部分](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/src/questions/css-questions.md)的参考答案。 欢迎提出 PR 进行建议和指正！
 
 * [CSS 选择器的优先级是如何计算的？](#css-选择器的优先级是如何计算的)
 * [重置（resetting）CSS 和 标准化（normalizing）CSS 的区别是什么？你会选择哪种方式，为什么？](#重置resettingcss-和-标准化normalizingcss-的区别是什么你会选择哪种方式为什么)
@@ -8,7 +8,7 @@
 * [请阐述`z-index`属性，并说明如何形成层叠上下文（stacking context）。](#请阐述z-index属性并说明如何形成层叠上下文stacking-context)
 * [请阐述块格式化上下文（Block Formatting Context）及其工作原理。](#请阐述块格式化上下文block-formatting-context及其工作原理)
 * [有哪些清除浮动的技术，都适用哪些情况？](#有哪些清除浮动的技术都适用哪些情况)
-* [请解释什么是雪碧图（css sprites），以及如何实现？](#请解释什么是雪碧图css-sprites以及如何实现)
+* [请解释什么是精灵图（css sprites），以及如何实现？](#请解释什么是精灵图css-sprites以及如何实现)
 * [如何解决不同浏览器的样式兼容性问题？](#如何解决不同浏览器的样式兼容性问题)
 * [如何为功能受限的浏览器提供页面？ 使用什么样的技术和流程？](#如何为功能受限的浏览器提供页面-使用什么样的技术和流程)
 * [有什么不同的方式可以隐藏内容（使其仅适用于屏幕阅读器）？](#有什么不同的方式可以隐藏内容使其仅适用于屏幕阅读器)
@@ -145,17 +145,19 @@ CSS 中的`z-index`属性控制重叠元素的垂直叠加顺序。`z-index`只�
 
 [[↑] 回到顶部](#css-问题)
 
-### 请解释什么是雪碧图（css sprites），以及如何实现？
+### 请解释什么是精灵图（css sprites），以及如何实现？
 
-雪碧图是把多张图片整合到一张上的图片。它被运用在众多使用了很多小图标的网站上（Gmail 在使用）。实现方法：
+精灵图，也称雪碧图。因常见碳酸饮料雪碧的英文名也是 Sprite，因此也有人会使用雪碧图的非正式译名。
+    
+精灵图是把多张图片整合到一张上的图片。它被运用在众多使用了很多小图标的网站上（Gmail 在使用）。实现方法：
 
-1. 使用生成器将多张图片打包成一张雪碧图，并为其生成合适的 CSS。
+1. 使用生成器将多张图片打包成一张精灵图，并为其生成合适的 CSS。
 1. 每张图片都有相应的 CSS 类，该类定义了`background-image`、`background-position`和`background-size`属性。
 1. 使用图片时，将相应的类添加到你的元素中。
 
 好处：
 
-* 减少加载多张图片的 HTTP 请求数（一张雪碧图只需要一个请求）。但是对于 HTTP2 而言，加载多张图片不再是问题。
+* 减少加载多张图片的 HTTP 请求数（一张精灵图只需要一个请求）。但是对于 HTTP2 而言，加载多张图片不再是问题。
 * 提前加载资源，防止在需要时才在开始下载引发的问题，比如只出现在`:hover`伪类中的图片，不会出现闪烁。
 
 ###### 参考
@@ -176,7 +178,6 @@ CSS 中的`z-index`属性控制重叠元素的垂直叠加顺序。`z-index`只�
 ### 如何为功能受限的浏览器提供页面？ 使用什么样的技术和流程？
 
 * 优雅的降级：为现代浏览器构建应用，同时确保它在旧版浏览器中正常运行。
-* Progressive enhancement - The practice of building an application for a base level of user experience, but adding functional enhancements when a browser supports it.
 * 渐进式增强：构建基于用户体验的应用，但在浏览器支持时添加新增功能。
 * 利用 [caniuse.com](https://caniuse.com/) 检查特性支持。
 * 使用 `autoprefixer` 自动生成 CSS 属性前缀。
@@ -219,13 +220,33 @@ CSS 中的`z-index`属性控制重叠元素的垂直叠加顺序。`z-index`只�
 
 ### 你熟悉制作 SVG 吗？
 
-不好意思，不熟悉。
+是的，你可以使用内联CSS、嵌入式CSS部分或外部CSS文件对形状进行着色（包括指定对象上的属性）。在网上大部分SVG使用的是内联CSS，不过每个类型都有优点和缺点。
+
+通过设置`fill`和`stroke`属性，可以完成基本着色操作。`fill`可以设置内部的颜色，`stroke`可以设置周围绘制的线条的颜色。你可以使用与`HTML`中使用的CSS颜色命名方案相同的CSS颜色命名方案：颜色名称（即`red`）、RGB值（即`rgb(255,0,0)`）、十六进制值、RGBA值等等。
+
+```html
+<rect x="10" y="10" width="100" height="100" stroke="blue"
+  fill="purple" fill-opacity="0.5" stroke-opacity="0.8"/>
+```
+
+###### 参考
+
+* https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes
+
 
 [[↑] 回到顶部](#css-问题)
 
 ### 除了`screen`，你还能说出一个 @media 属性的例子吗？
 
-TODO
+- `all` 适用于所有设备。
+- `print` 为了加载合适的文档到当前使用的可视窗口. 需要提前咨询 paged media（媒体屏幕尺寸）, 以满足个别设备网页尺寸不匹配等问题。
+- `screen` 主要适用于彩色的电脑屏幕
+- `speech` 解析speech这个合成器. 注意: CSS2已经有一个相似的媒体类型叫aural.
+
+###### 参考
+
+* https://developer.mozilla.org/zh-CN/docs/Web/CSS/@media
+
 
 [[↑] 回到顶部](#css-问题)
 

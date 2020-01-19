@@ -1,10 +1,10 @@
 # HTML Questions
 
-Answers to [Front-end Job Interview Questions - HTML Questions](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/questions/html-questions.md). Pull requests for suggestions and corrections are welcome!
+Answers to [Front-end Job Interview Questions - HTML Questions](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/src/questions/html-questions.md). Pull requests for suggestions and corrections are welcome!
 
 * [What does a doctype do?](#what-does-a-doctype-do)
 * [How do you serve a page with content in multiple languages?](#how-do-you-serve-a-page-with-content-in-multiple-languages)
-* [What kind of things must you be wary of when design or developing for multilingual sites?](#what-kind-of-things-must-you-be-wary-of-when-designing-or-developing-for-multilingual-sites)
+* [What kind of things must you be wary of when designing or developing for multilingual sites?](#what-kind-of-things-must-you-be-wary-of-when-designing-or-developing-for-multilingual-sites)
 * [What are `data-` attributes good for?](#what-are-data--attributes-good-for)
 * [Consider HTML5 as an open web platform. What are the building blocks of HTML5?](#consider-html5-as-an-open-web-platform-what-are-the-building-blocks-of-html5)
 * [Describe the difference between a `cookie`, `sessionStorage` and `localStorage`.](#describe-the-difference-between-a-cookie-sessionstorage-and-localstorage)
@@ -14,17 +14,24 @@ Answers to [Front-end Job Interview Questions - HTML Questions](https://github.c
 * [Why you would use a `srcset` attribute in an image tag? Explain the process the browser uses when evaluating the content of this attribute.](#why-you-would-use-a-srcset-attribute-in-an-image-tag-explain-the-process-the-browser-uses-when-evaluating-the-content-of-this-attribute)
 * [Have you used different HTML templating languages before?](#have-you-used-different-html-templating-languages-before)
 
-### What does a `DOCTYPE` do?
+### What does a DOCTYPE do?
 
-`DOCTYPE` is an abbreviation for “document type”. It is a declaration used in HTML to distinguish between standards mode and [quirks mode](https://quirks.spec.whatwg.org/#history). Its presence tells the browser to render the web page in standards mode.
+**DOCTYPE** is an abbreviation for **DOCument TYPE**.
+A DOCTYPE is always associated to a **DTD** - for **Document Type Definition**.
 
-Moral of the story - just add `<!DOCTYPE html>` at the start of your page.
+A DTD defines how documents of a certain type should be structured (i.e. a `button` can contain a `span` but not a `div`), whereas a DOCTYPE declares what DTD a document *supposedly* respects (i.e. this document respects the HTML DTD).
+
+For webpages, the DOCTYPE declaration is required. It is used to tell user agents what version of the HTML specifications your document respects.
+Once a user agent has recognized a correct DOCTYPE, it will trigger the **no-quirks mode** matching this DOCTYPE for reading the document.
+If a user agent doesn't recognize a correct DOCTYPE, it will trigger the **quirks mode**.
+
+The DOCTYPE declaration for the HTML5 standards is `<!DOCTYPE html>`.
 
 ###### References
 
-* https://stackoverflow.com/questions/7695044/what-does-doctype-html-do
-* https://www.w3.org/QA/Tips/Doctype
-* https://quirks.spec.whatwg.org/#history
+* https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
+* https://html.spec.whatwg.org/multipage/xhtml.html
+* https://quirks.spec.whatwg.org/
 
 [[↑] Back to top](#html-questions)
 
@@ -46,7 +53,7 @@ In the back end, the HTML markup will contain `i18n` placeholders and content fo
 
 * Use `lang` attribute in your HTML.
 * Directing users to their native language - Allow a user to change his country/language easily without hassle.
-* Text in images is not a scalable approach - Placing text in an image is still a popular way to get good-looking, non-system fonts to display on any computer. However, to translate image text, each string of text will need to have it's a separate image created for each language. Anything more than a handful of replacements like this can quickly get out of control.
+* Text in raster-based images (e.g. png, gif, jpg, etc.), is not a scalable approach - Placing text in an image is still a popular way to get good-looking, non-system fonts to display on any computer. However, to translate image text, each string of text will need to have a separate image created for each language. Anything more than a handful of replacements like this can quickly get out of control.
 * Restrictive words/sentence length - Some content can be longer when written in another language. Be wary of layout or overflow issues in the design. It's best to avoid designing where the amount of text would make or break a design. Character counts come into play with things like headlines, labels, and buttons. They are less of an issue with free-flowing text such as body text or comments.
 * Be mindful of how colors are perceived - Colors are perceived differently across languages and cultures. The design should use color appropriately.
 * Formatting dates and currencies - Calendar dates are sometimes presented in different ways. Eg. "May 31, 2012" in the U.S. vs. "31 May 2012" in parts of Europe.
@@ -63,7 +70,9 @@ In the back end, the HTML markup will contain `i18n` placeholders and content fo
 
 Before JavaScript frameworks became popular, front end developers used `data-` attributes to store extra data within the DOM itself, without other hacks such as non-standard attributes, extra properties on the DOM. It is intended to store custom data private to the page or application, for which there are no more appropriate attributes or elements.
 
-These days, using `data-` attributes is not encouraged. One reason is that users can modify the data attribute easily by using inspect element in the browser. The data model is better stored within JavaScript itself and stay updated with the DOM via data binding possibly through a library or a framework.
+These days, using `data-` attributes is generally not encouraged. One reason is that users can modify the data attribute easily by using inspect element in the browser. The data model is better stored within JavaScript itself and stay updated with the DOM via data binding possibly through a library or a framework.
+
+However, one perfectly valid use of data attributes, is to add a hook for _end to end_ testing frameworks such as Selenium and Capybara without having to create a meaningless classes or ID attributes. The element needs a way to be found by a particular Selenium spec and something like `data-selector='the-thing'` is a valid way to do so without convoluting the semantic markup otherwise.
 
 ###### References
 
@@ -102,6 +111,8 @@ All the above-mentioned technologies are key-value storage mechanisms on the cli
 | Capacity (per domain)                  | 4kb                                                      | 5MB            | 5MB              |
 | Accessibility                          | Any window                                               | Any window     | Same tab         |
 
+_Note: If the user decides to clear browsing data via whatever mechanism provided by the browser, this will clear out any `cookie`, `localStorage`, or `sessionStorage` stored. It's important to keep this in mind when designing for local persistance, especially when comparing to alternatives such as server side storing in a database or similar (which of course will persist despite user actions)._
+
 ###### References
 
 * https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
@@ -129,17 +140,19 @@ Note: The `async` and `defer` attrib­utes are ignored for scripts that have no 
 
 **Placing `<link>`s in the `<head>`**
 
-Putting `<link>`s in the head is part of the specification. Besides that, placing at the top allows the page to render progressively which improves the user experience. The problem with putting stylesheets near the bottom of the document is that it prohibits progressive rendering in many browsers, including Internet Explorer. Some browsers block rendering to avoid having to repaint elements of the page if their styles change. The user is stuck viewing a blank white page. It prevents the flash of unstyled contents.
+Putting `<link>`s in the head is part of proper specification in building an optimized website. When a page first loads, HTML and CSS are being parsed simultaneously; HTML creates the DOM (Document Object Model) and CSS creates the CSSOM (CSS Object Model). Both are needed to create the visuals in a website, allowing for a quick "first meaningful paint" timing. This progressive rendering is a category optimization sites are measured in their performance scores. Putting stylesheets near the bottom of the document is what prohibits progressive rendering in many browsers. Some browsers block rendering to avoid having to repaint elements of the page if their styles change. The user is then stuck viewing a blank white page. Other times there can be flashes of unstyled content (FOUC), which can shows a webpage with no styling applied.
 
 **Placing `<script>`s just before `</body>`**
 
-`<script>`s block HTML parsing while they are being downloaded and executed. Downloading the scripts at the bottom will allow the HTML to be parsed and displayed to the user first.
+`<script>`s block HTML parsing while they are being downloaded and executed. Placing the scripts at the bottom will allow the HTML to be parsed and displayed to the user first.
 
-An exception for positioning of `<script>`s at the bottom is when your script contains `document.write()`, but these days it's not a good practice to use `document.write()`. Also, placing `<script>`s at the bottom means that the browser cannot start downloading the scripts until the entire document is parsed. One possible workaround is to put `<script>` in the `<head>` and use the `defer` attribute.
+An exception for positioning of `<script>`s at the bottom is when your script contains `document.write()`, but these days it's not a good practice to use `document.write()`. Also, placing `<script>`s at the bottom means that the browser cannot start downloading the scripts until the entire document is parsed. This ensures your code that needs to manipulate DOM elements will not throw and error and halt the entire script. If you need to put `<script>` in the `<head>`, use the `defer` attribute, which will achieve the same effect of downloading and running the script only after the HTML is parsed.
 
 ###### References
 
 * https://developer.yahoo.com/performance/rules.html#css_top
+* https://www.techrepublic.com/blog/web-designer/how-to-prevent-flash-of-unstyled-content-on-your-websites/
+* https://developers.google.com/web/fundamentals/performance/critical-rendering-path/
 
 [[↑] Back to top](#html-questions)
 

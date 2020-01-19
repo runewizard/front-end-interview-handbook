@@ -1,6 +1,6 @@
 ## JS Questions
 
-Answers to [Front-end Job Interview Questions - JS Questions](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/questions/javascript-questions.md). Pull requests for suggestions and corrections are welcome!
+Answers to [Front-end Job Interview Questions - JS Questions](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/src/questions/javascript-questions.md). Pull requests for suggestions and corrections are welcome!
 
 * [Explain event delegation](#explain-event-delegation)
 * [Explain how `this` works in JavaScript](#explain-how-this-works-in-javascript)
@@ -13,7 +13,7 @@ Answers to [Front-end Job Interview Questions - JS Questions](https://github.com
 * [What's a typical use case for anonymous functions?](#whats-a-typical-use-case-for-anonymous-functions)
 * [How do you organize your code? (module pattern, classical inheritance?)](#how-do-you-organize-your-code-module-pattern-classical-inheritance)
 * [What's the difference between host objects and native objects?](#whats-the-difference-between-host-objects-and-native-objects)
-* [Difference between: function `Person(){}`, `var person = Person()`, and `var person = new Person()`?](#difference-between-function-person-var-person--person-and-var-person--new-person)
+* [Difference between: `function Person(){}`, `var person = Person()`, and `var person = new Person()`?](#difference-between-function-person-var-person--person-and-var-person--new-person)
 * [What's the difference between `.call` and `.apply`?](#whats-the-difference-between-call-and-apply)
 * [Explain `Function.prototype.bind`.](#explain-functionprototypebind)
 * [When would you use `document.write()`?](#when-would-you-use-documentwrite)
@@ -84,6 +84,10 @@ There's no simple explanation for `this`; it is one of the most confusing concep
 
 For an in-depth explanation, do check out his [article on Medium](https://codeburst.io/the-simple-rules-to-this-in-javascript-35d97f31bde3).
 
+#### Can you give an example of one of the ways that working with this has changed in ES6?
+
+ES6 allows you to use [arrow functions](http://2ality.com/2017/12/alternate-this.html#arrow-functions) which uses the [enclosing lexical scope](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions#No_separate_this). This is usually convenient, but does prevent the caller from controlling context via `.call` or `.apply`—the consequences being that a library such as `jQuery` will not properly bind `this` in your event handler functions. Thus, it's important to keep this in mind when refactoring large legacy applications.
+
 ###### References
 
 * https://codeburst.io/the-simple-rules-to-this-in-javascript-35d97f31bde3
@@ -95,10 +99,84 @@ For an in-depth explanation, do check out his [article on Medium](https://codebu
 
 This is an extremely common JavaScript interview question. All JavaScript objects have a `prototype` property, that is a reference to another object. When a property is accessed on an object and if the property is not found on that object, the JavaScript engine looks at the object's `prototype`, and the `prototype`'s `prototype` and so on, until it finds the property defined on one of the `prototype`s or until it reaches the end of the prototype chain. This behavior simulates classical inheritance, but it is really more of [delegation than inheritance](https://davidwalsh.name/javascript-objects).
 
+#### Example of Prototypal Inheritance
+
+We already have a build-in `Object.create`, but if you were to provide a polyfill for it, that might look like:
+
+```javascript
+if (typeof Object.create !== 'function') {
+  Object.create = function (parent) {
+    function Tmp() {}
+    Tmp.prototype = parent;
+    return new Tmp();
+  };
+}
+
+const Parent = function() {
+  this.name = "Parent";
+}
+
+Parent.prototype.greet = function() { console.log("hello from Parent"); }
+
+const child = Object.create(Parent.prototype);
+
+child.cry = function() {
+  console.log("waaaaaahhhh!");
+}
+
+child.cry();
+// Outputs: waaaaaahhhh!
+
+child.greet();
+// Outputs: hello from Parent
+```
+
+Things to note are:
+
+* `.greet` is not defined on the _child_, so the engine goes up the prototype chain and finds `.greet` off the inherited from _Parent_.
+* We need to call `Object.create` in one of following ways for the prototype methods to be inherited:
+  * Object.create(Parent.prototype);
+  * Object.create(new Parent(null));
+  * Object.create(objLiteral);
+  * Currently, `child.constructor` is pointing to the `Parent`:
+
+```javascript
+child.constructor
+ƒ () {
+  this.name = "Parent";
+}
+child.constructor.name
+"Parent"
+```
+  * If we'd like to correct this, one option would be to do:
+
+```javascript
+function Child() {
+  Parent.call(this);
+  this.name = 'child';
+}
+
+Child.prototype = Parent.prototype;
+Child.prototype.constructor = Child;
+
+const c = new Child();
+
+c.cry();
+// Outputs: waaaaaahhhh!
+
+c.greet();
+// Outputs: hello from Parent
+
+c.constructor.name;
+// Outputs: "Child"
+```
+
 ###### References
 
 * https://www.quora.com/What-is-prototypal-inheritance/answer/Kyle-Simpson
 * https://davidwalsh.name/javascript-objects
+* https://crockford.com/javascript/prototypal.html
+* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
 
 [[↑] Back to top](#js-questions)
 
@@ -119,9 +197,9 @@ I'm glad that with ES2015 modules, that has support for both synchronous and asy
 
 ### Explain why the following doesn't work as an IIFE: `function foo(){ }();`. What needs to be changed to properly make it an IIFE?
 
-IIFE stands for Immediately Invoked Function Expressions. The JavaScript parser reads `function foo(){ }();` as `function foo(){ }` and `();`, where the former is a function declaration and the latter (a pair of brackets) is an attempt at calling a function but there is no name specified, hence it throws `Uncaught SyntaxError: Unexpected token )`.
+IIFE stands for Immediately Invoked Function Expressions. The JavaScript parser reads `function foo(){ }();` as `function foo(){ }` and `();`, where the former is a *function declaration* and the latter (a pair of parentheses) is an attempt at calling a function but there is no name specified, hence it throws `Uncaught SyntaxError: Unexpected token )`.
 
-Here are two ways to fix it that involves adding more brackets: `(function foo(){ })()` and `(function foo(){ }())`. These functions are not exposed in the global scope and you can even omit its name if you do not need to reference itself within the body.
+Here are two ways to fix it that involves adding more parentheses: `(function foo(){ })()` and `(function foo(){ }())`. Statements that begin with `function` are considered to be *function declarations*; by wrapping this function within `()`, it becomes a *function expression* which can then be executed with the subsequent `()`. These functions are not exposed in the global scope and you can even omit its name if you do not need to reference itself within the body.
 
 You might also use `void` operator: `void function foo(){ }();`. Unfortunately, there is one issue with such approach. The evaluation of given expression is always `undefined`, so if your IIFE function returns anything, you can't use it. An example:
 
@@ -172,11 +250,12 @@ A variable that is `null` will have been explicitly assigned to the `null` value
 ```js
 var foo = null;
 console.log(foo === null); // true
+console.log(typeof foo === 'object'); // true
 
 console.log(foo == undefined); // true. Wrong, don't use this to check!
 ```
 
-As a personal habit, I never leave my variables undeclared or unassigned. I will explicitly assign `null` to them after declaring if I don't intend to use it yet.
+As a personal habit, I never leave my variables undeclared or unassigned. I will explicitly assign `null` to them after declaring if I don't intend to use it yet. If you use a linter in your workflow, it will usually also be able to check that you are not referencing undeclared variables.
 
 ###### References
 
@@ -279,7 +358,7 @@ console.log(double); // [2, 4, 6]
 
 ### How do you organize your code? (module pattern, classical inheritance?)
 
-In the past, I used Backbone for my models which encourages a more OOP approach, creating Backbone models and attaching methods to them.
+In the past, I've used Backbone for my models which encourages a more OOP approach, creating Backbone models and attaching methods to them.
 
 The module pattern is still great, but these days, I use React/Redux which utilize a single-directional data flow based on Flux architecture. I would represent my app's models using plain objects and write utility pure functions to manipulate these objects. State is manipulated using actions and reducers like in any other Redux application.
 
@@ -303,7 +382,7 @@ Host objects are provided by the runtime environment (browser or Node), such as 
 
 This question is pretty vague. My best guess at its intention is that it is asking about constructors in JavaScript. Technically speaking, `function Person(){}` is just a normal function declaration. The convention is to use PascalCase for functions that are intended to be used as constructors.
 
-`var person = Person()` invokes the `Person` as a function, and not as a constructor. Invoking as such is a common mistake if it the function is intended to be used as a constructor. Typically, the constructor does not return anything, hence invoking the constructor like a normal function will return `undefined` and that gets assigned to the variable intended as the instance.
+`var person = Person()` invokes the `Person` as a function, and not as a constructor. Invoking as such is a common mistake if the function is intended to be used as a constructor. Typically, the constructor does not return anything, hence invoking the constructor like a normal function will return `undefined` and that gets assigned to the variable intended as the instance.
 
 `var person = new Person()` creates an instance of the `Person` object using the `new` operator, which inherits from `Person.prototype`. An alternative would be to use `Object.create`, such as: `Object.create(Person.prototype)`.
 
@@ -346,7 +425,7 @@ console.log(add.apply(null, [1, 2])); // 3
 
 Taken word-for-word from [MDN](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_objects/Function/bind):
 
-> The `bind()` method creates a new function that, when called, has its this keyword set to the provided value, with a given sequence of arguments preceding any provided when the new function is called.
+> The `bind()` method creates a new function that, when called, has its `this` keyword set to the provided value, with a given sequence of arguments preceding any provided when the new function is called.
 
 In my experience, it is most useful for binding the value of `this` in methods of classes that you want to pass into other functions. This is frequently done in React components.
 
@@ -411,7 +490,7 @@ This is a browser-reported string that allows the network protocol peers to iden
 
 ### Explain Ajax in as much detail as possible.
 
-Ajax (asynchronous JavaScript and XML) is a set of web development techniques using many web technologies on the client side to create asynchronous web applications. With Ajax, web applications can send data to and retrieve from a server asynchronously (in the background) without interfering with the display and behavior of the existing page. By decoupling the data interchange layer from the presentation layer, Ajax allows for web pages, and by extension web applications, to change content dynamically without the need to reload the entire page. In practice, modern implementations commonly substitute XML for JSON due to the advantages of being native to JavaScript.
+Ajax (asynchronous JavaScript and XML) is a set of web development techniques using many web technologies on the client side to create asynchronous web applications. With Ajax, web applications can send data to and retrieve from a server asynchronously (in the background) without interfering with the display and behavior of the existing page. By decoupling the data interchange layer from the presentation layer, Ajax allows for web pages, and by extension web applications, to change content dynamically without the need to reload the entire page. In practice, modern implementations commonly substitute use JSON instead of XML, due to the advantages of JSON being native to JavaScript.
 
 The `XMLHttpRequest` API is frequently used for the asynchronous communication or these days, the `fetch` API.
 
@@ -631,6 +710,14 @@ function duplicate(arr) {
 duplicate([1, 2, 3, 4, 5]); // [1,2,3,4,5,1,2,3,4,5]
 ```
 
+Or with ES6:
+
+```js
+const duplicate = (arr) => [...arr, ...arr];
+
+duplicate([1, 2, 3, 4, 5]); // [1,2,3,4,5,1,2,3,4,5] 
+```
+
 [[↑] Back to top](#js-questions)
 
 ### Why is it called a Ternary expression, what does the word "Ternary" indicate?
@@ -760,11 +847,21 @@ Some common polyfills are `$.deferred`, Q and Bluebird but not all of them compl
 * Avoid callback hell which can be unreadable.
 * Makes it easy to write sequential asynchronous code that is readable with `.then()`.
 * Makes it easy to write parallel asynchronous code with `Promise.all()`.
+* With promises, these scenarios which are present in callbacks-only coding, will not happen:
+  * Call the callback too early
+  * Call the callback too late (or never)
+  * Call the callback too few or too many times
+  * Fail to pass along any necessary environment/parameters
+  * Swallow any errors/exceptions that may happen
 
 **Cons**
 
 * Slightly more complex code (debatable).
 * In older browsers where ES2015 is not supported, you need to load a polyfill in order to use it.
+
+###### References
+
+* https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/ch3.md
 
 [[↑] Back to top](#js-questions)
 
@@ -819,7 +916,7 @@ Practically, ES2015 has vastly improved JavaScript and made it much nicer to wri
 
 For objects:
 
-* `for` loops - `for (var property in obj) { console.log(property); }`. However, this will also iterate through its inherited properties, and you will add an `obj.hasOwnProperty(property)` check before using it.
+* `for-in` loops - `for (var property in obj) { console.log(property); }`. However, this will also iterate through its inherited properties, and you will add an `obj.hasOwnProperty(property)` check before using it.
 * `Object.keys()` - `Object.keys(obj).forEach(function (property) { ... })`. `Object.keys()` is a static method that will lists all enumerable properties of the object that you pass it.
 * `Object.getOwnPropertyNames()` - `Object.getOwnPropertyNames(obj).forEach(function (property) { ... })`. `Object.getOwnPropertyNames()` is a static method that will lists all enumerable and non-enumerable properties of the object that you pass it.
 
@@ -827,18 +924,137 @@ For arrays:
 
 * `for` loops - `for (var i = 0; i < arr.length; i++)`. The common pitfall here is that `var` is in the function scope and not the block scope and most of the time you would want block scoped iterator variable. ES2015 introduces `let` which has block scope and it is recommended to use that instead. So this becomes: `for (let i = 0; i < arr.length; i++)`.
 * `forEach` - `arr.forEach(function (el, index) { ... })`. This construct can be more convenient at times because you do not have to use the `index` if all you need is the array elements. There are also the `every` and `some` methods which will allow you to terminate the iteration early.
+* `for-of` loops - `for (let elem of arr) { ... }`. ES6 introduces a new loop, the `for-of` loop, that allows you to loop over objects that conform to the [iterable protocol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols#The_iterable_protocol) such as `String`, `Array`, `Map`, `Set`, etc. It combines the advantages of the `for` loop and the `forEach()` method. The advantage of the `for` loop is that you can break from it, and the advantage of `forEach()` is that it is more concise than the `for` loop because you don't need a counter variable. With the `for-of` loop, you get both the ability to break from a loop and a more concise syntax.
 
-Most of the time, I would prefer the `.forEach` method, but it really depends on what you are trying to do. `for` loops allow more flexibility, such as prematurely terminate the loop using `break` or incrementing the iterator more than once per loop.
+Most of the time, I would prefer the `.forEach` method, but it really depends on what you are trying to do. Before ES6, we used `for` loops when we needed to prematurely terminate the loop using `break`. But now with ES6, we can do that with `for-of` loops. I would use `for` loops when I need even more flexibility, such as incrementing the iterator more than once per loop.
+
+Also, when using the `for-of` loop, if you need to access both the index and value of each array element, you can do so with the ES6 Array `entries()` method and destructuring:
+
+```
+const arr = ['a', 'b', 'c'];
+
+for (let [index, elem] of arr.entries()) {
+  console.log(index, ': ', elem);
+}
+```
+
+###### References
+
+- http://2ality.com/2015/08/getting-started-es6.html#from-for-to-foreach-to-for-of
+- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/entries
 
 [[↑] Back to top](#js-questions)
 
 ### Explain the difference between mutable and immutable objects.
 
-* What is an example of an immutable object in JavaScript?
-* What are the pros and cons of immutability?
-* How can you achieve immutability in your own code?
+Immutability is a core principle in functional programming, and has lots to offer to object-oriented programs as well. A mutable object is an object whose state can be modified after it is created. An immutable object is an object whose state cannot be modified after it is created.
 
-TODO
+#### What is an example of an immutable object in JavaScript?
+
+In JavaScript, some built-in types (numbers, strings) are immutable, but custom objects are generally mutable.
+
+Some built-in immutable JavaScript objects are `Math`, `Date`.
+
+Here are a few ways to add/simulate immutability on plain JavaScript objects.
+
+**Object Constant Properties**
+
+By combining `writable: false` and `configurable: false`, you can essentially create a constant (cannot be changed, redefined or deleted) as an object property, like:
+
+```js
+let myObject = {};
+Object.defineProperty(myObject, 'number', {
+  value: 42,
+  writable: false,
+  configurable: false,
+});
+console.log(myObject.number); // 42
+myObject.number = 43;
+console.log(myObject.number); // 42
+```
+
+**Prevent Extensions**
+
+If you want to prevent an object from having new properties added to it, but otherwise leave the rest of the object's properties alone, call `Object.preventExtensions(...)`:
+
+```
+var myObject = {
+  a: 2
+};
+
+Object.preventExtensions(myObject);
+
+myObject.b = 3;
+myObject.b; // undefined
+```
+
+In non-strict mode, the creation of `b` fails silently. In strict mode, it throws a `TypeError`.
+
+**Seal**
+
+`Object.seal()` creates a "sealed" object, which means it takes an existing object and essentially calls `Object.preventExtensions()` on it, but also marks all its existing properties as `configurable: false`.
+
+So, not only can you not add any more properties, but you also cannot reconfigure or delete any existing properties (though you can still modify their values).
+
+**Freeze**
+
+`Object.freeze()` creates a frozen object, which means it takes an existing object and essentially calls `Object.seal()` on it, but it also marks all "data accessor" properties as writable:false, so that their values cannot be changed.
+
+This approach is the highest level of immutability that you can attain for an object itself, as it prevents any changes to the object or to any of its direct properties (though, as mentioned above, the contents of any referenced other objects are unaffected).
+
+```js
+var immutable = Object.freeze({});
+```
+
+Freezing an object does not allow new properties to be added to an object and prevents from removing or altering the existing properties. `Object.freeze()` preserves the enumerability, configurability, writability and the prototype of the object. It returns the passed object and does not create a frozen copy.
+
+#### What are the pros and cons of immutability?
+
+**Pros**
+
+* Easier change detection - Object equality can be determined in a performant and easy manner through referential equality. This is useful for comparing object differences in React and Redux.
+* Programs with immutable objects are less complicated to think about, since you don't need to worry about how an object may evolve over time.
+* Defensive copies are no longer necessary when immutable objects are returning from or passed to functions, since there is no possibility an immutable object will be modified by it.
+* Easy sharing via references - One copy of an object is just as good as another, so you can cache objects or reuse the same object multiple times.
+* Thread-safe - Immutable objects can be safely used between threads in a multi-threaded environment since there is no risk of them being modified in other concurrently running threads.
+* Using libraries like ImmmutableJS, objects are modified using structural sharing and less memory is needed for having multiple objects with similar structures.
+
+**Cons**
+
+* Naive implementations of immutable data structures and its operations can result in extremely poor performance because new objects are created each time. It is recommended to use libraries for efficient immutable data structures and operations that leverage on structural sharing.
+* Allocation (and deallocation) of many small objects rather than modifying existing ones can cause a performance impact. The complexity of either the allocator or the garbage collector usually depends on the number of objects on the heap.
+* Cyclic data structures such as graphs are difficult to build. If you have two objects which can't be modified after initialization, how can you get them to point to each other?
+
+###### References
+
+- https://stackoverflow.com/questions/1863515/pros-cons-of-immutability-vs-mutability
+
+[[↑] Back to top](#js-questions)
+
+#### How can you achieve immutability in your own code?
+
+One way to achieve immutability is to use libraries like [immutable.js](http://facebook.github.io/immutable-js/), [mori](https://github.com/swannodette/mori) or [immer](https://github.com/immerjs/immer).
+
+The alternative is to use `const` declarations combined with the techniques mentioned above for creation. For "mutating" objects, use the spread operator, `Object.assign`, `Array.concat()`, etc., to create new objects instead of mutate the original object.
+
+Examples:
+
+```js
+// Array Example
+const arr = [1, 2, 3];
+const newArr = [...arr, 4]; // [1, 2, 3, 4]
+
+// Object Example
+const human = Object.freeze({race: 'human'});
+const john = { ...human, name: 'John' }; // {race: "human", name: "John"}
+const alienJohn = { ...john, race: 'alien' }; // {race: "alien", name: "John"}
+```
+
+###### References
+
+* https://stackoverflow.com/questions/1863515/pros-cons-of-immutability-vs-mutability
+* https://www.sitepoint.com/immutability-javascript/
+* https://wecodetheweb.com/2016/02/12/immutable-javascript-using-es6-and-beyond/
 
 [[↑] Back to top](#js-questions)
 
@@ -865,7 +1081,7 @@ If you haven't already checked out Philip Robert's [talk on the Event Loop](http
 
 ### Explain the differences on the usage of `foo` between `function foo() {}` and `var foo = function() {}`
 
-The former is a function declaration while the latter is a function expression. The key difference is that function declarations have its body hoisted but the bodies of function expressions are not (they have the same hoisting behavior as variables). For more explanation on hoisting, refer to the question above on hoisting. If you try to invoke a function expression before it is defined, you will get an `Uncaught TypeError: XXX is not a function` error.
+The former is a function declaration while the latter is a function expression. The key difference is that function declarations have its body hoisted but the bodies of function expressions are not (they have the same hoisting behavior as variables). For more explanation on hoisting, refer to the question above [on hoisting](#explain-hoisting). If you try to invoke a function expression before it is defined, you will get an `Uncaught TypeError: XXX is not a function` error.
 
 **Function Declaration**
 
@@ -1028,13 +1244,52 @@ It's much more verbose to use inheritance in ES5 and the ES6 version is easier t
 
 ### Can you offer a use case for the new arrow => function syntax? How does this new syntax differ from other functions?
 
-TODO
+One obvious benefit of arrow functions is to simplify the syntax needed to create functions, without a need for the `function` keyword. The `this` within arrow functions is also bound to the enclosing scope which is different compared to regular functions where the `this` is determined by the object calling it. Lexically-scoped `this` is useful when invoking callbacks especially in React components.
 
 [[↑] Back to top](#js-questions)
 
 ### What advantage is there for using the arrow syntax for a method in a constructor?
 
-TODO
+The main advantage of using an arrow function as a method inside a constructor is that the value of `this` gets set at the time of the function creation and can't change after that. So, when the constructor is used to create a new object, `this` will always refer to that object. For example, let's say we have a `Person` constructor that takes a first name as an argument has two methods to `console.log` that name, one as a regular function and one as an arrow function:
+
+```js
+const Person = function(firstName) {
+  this.firstName = firstName;
+  this.sayName1 = function() { console.log(this.firstName); };
+  this.sayName2 = () => { console.log(this.firstName); };
+};
+
+const john = new Person('John');
+const dave = new Person('Dave');
+
+john.sayName1(); // John
+john.sayName2(); // John
+
+// The regular function can have its 'this' value changed, but the arrow function cannot
+john.sayName1.call(dave); // Dave (because "this" is now the dave object)
+john.sayName2.call(dave); // John
+
+john.sayName1.apply(dave); // Dave (because 'this' is now the dave object)
+john.sayName2.apply(dave); // John
+
+john.sayName1.bind(dave)(); // Dave (because 'this' is now the dave object)
+john.sayName2.bind(dave)(); // John
+
+var sayNameFromWindow1 = john.sayName1;
+sayNameFromWindow1(); // undefined (because 'this' is now the window object)
+
+var sayNameFromWindow2 = john.sayName2;
+sayNameFromWindow2(); // John
+```
+
+The main takeaway here is that `this` can be changed for a normal function, but the context always stays the same for an arrow function. So even if you are passing around your arrow function to different parts of your application, you wouldn't have to worry about the context changing.
+
+This can be particularly helpful in React class components. If you define a class method for something such as a click handler using a normal function, and then you pass that click handler down into a child component as a prop, you will need to also bind `this` in the constructor of the parent component. If you instead use an arrow function, there is no need to also bind "this", as the method will automatically get its "this" value from its enclosing lexical context. (See this article for an excellent demonstration and sample code: https://medium.com/@machnicki/handle-events-in-react-with-arrow-functions-ede88184bbb)
+
+###### References
+
+* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+* https://medium.com/@machnicki/handle-events-in-react-with-arrow-functions-ede88184bbb
 
 [[↑] Back to top](#js-questions)
 
@@ -1126,7 +1381,67 @@ console.log(q); // true
 
 ### ES6 Template Literals offer a lot of flexibility in generating strings, can you give an example?
 
-TODO
+Template literals help make it simple to do string interpolation, or to include variables in a string. Before ES2015, it was common to do something like this:
+
+```js
+var person = { name: 'Tyler', age: 28 };
+console.log('Hi, my name is ' + person.name + ' and I am ' + person.age + ' years old!');
+// 'Hi, my name is Tyler and I am 28 years old!'
+```
+
+With template literals, you can now create that same output like this instead:
+
+```js
+const person = { name: 'Tyler', age: 28 };
+console.log(`Hi, my name is ${person.name} and I am ${person.age} years old!`);
+// 'Hi, my name is Tyler and I am 28 years old!'
+```
+
+Note that you use backticks, not quotes, to indicate that you are using a template literal and that you can insert expressions inside the `${}` placeholders.
+
+A second helpful use case is in creating multi-line strings. Before ES2015, you could create a multi-line string like this:
+
+```js
+console.log('This is line one.\nThis is line two.');
+// This is line one.
+// This is line two.
+```
+
+Or if you wanted to break it up into multiple lines in your code so you didn't have to scroll to the right in your text editor to read a long string, you could also write it like this:
+
+```js
+console.log('This is line one.\n' +
+	'This is line two.');
+// This is line one.
+// This is line two.
+```
+
+Template literals, however, preserve whatever spacing you add to them. For example, to create that same multi-line output that we created above, you can simply do:
+
+```js
+console.log(`This is line one.
+This is line two.`);
+// This is line one.
+// This is line two.
+```
+
+Another use case of template literals would be to use as a substitute for templating libraries for simple variable interpolations:
+
+```js
+const person = { name: 'Tyler', age: 28 };
+document.body.innerHTML = `
+  <div>
+    <p>Name: ${person.name}</p>
+    <p>Name: ${person.age}</p>
+  </div>
+`
+```
+
+**Note that your code may be susceptible to XSS by using `.innerHTML`. Sanitize your data before displaying it if it came from a user!**
+
+###### References
+
+* https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 
 [[↑] Back to top](#js-questions)
 
@@ -1170,7 +1485,7 @@ var result = [0, 1, 2, 3, 4, 5].map(addFive); // [5, 6, 7, 8, 9, 10]
 
 ### What are the benefits of using spread syntax and how is it different from rest syntax?
 
-ES6's spread syntax is very useful when coding in a functional paradigm as we can easily create copies of arrays or objects without resorting to `Object.create`, `slice`, or a library function. This language feature is used often in Redux and rx.js projects.
+ES6's spread syntax is very useful when coding in a functional paradigm as we can easily create copies of arrays or objects without resorting to `Object.create`, `slice`, or a library function. This language feature is used often in Redux and RxJS projects.
 
 ```js
 function putDookieInAnyArray(arr) {

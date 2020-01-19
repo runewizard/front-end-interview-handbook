@@ -1,6 +1,6 @@
 ## JS 问题
 
-本章节是[前端开发者面试问题 - JS 部分](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/questions/javascript-questions.md)的参考答案。 欢迎提出 PR 进行建议和指正！
+本章节是[前端开发者面试问题 - JS 部分](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/src/questions/javascript-questions.md)的参考答案。 欢迎提出 PR 进行建议和指正！
 
 * [请解释事件委托（event delegation）。](#请解释事件委托event-delegation)
 * [请简述`JavaScript`中的`this`。](#请简述javascript中的this)
@@ -22,7 +22,7 @@
 * [使用 Ajax 的优缺点分别是什么？](#使用ajax的优缺点分别是什么)
 * [请说明 JSONP 的工作原理，它为什么不是真正的 Ajax？](#请说明-jsonp-的工作原理它为什么不是真正的-ajax)
 * [你使用过 JavaScript 模板吗？用过什么相关的库？](#你使用过-javascript-模板吗用过什么相关的库)
-* [请解释变量提升（hosting）。](#请解释变量提升hosting)
+* [请解释变量提升（hoisting）。](#请解释变量提升hoisting)
 * [请描述事件冒泡。](#请描述事件冒泡)
 * [“attribute” 和 “property” 之间有什么区别？](#attribute-和-property-之间有什么区别)
 * [为什么扩展 JavaScript 内置对象是不好的做法？](#为什么扩展-javascript-内置对象是不好的做法)
@@ -30,6 +30,11 @@
 * [`==`和`===`的区别是什么？](#和的区别是什么)
 * [请解释关于 JavaScript 的同源策略。](#请解释关于-javascript-的同源策略)
 * [请使下面的语句生效：](#请使下面的语句生效)
+
+```js
+duplicate([1, 2, 3, 4, 5]); // [1,2,3,4,5,1,2,3,4,5]
+```
+
 * [请说明三元表达式中“三元”这个词代表什么？](#请说明三元表达式中三元这个词代表什么)
 * [什么是`"use strict";`？使用它有什么优缺点？](#什么是use-strict使用它有什么优缺点)
 * [创建一个循环，从 1 迭代到 100，`3`的倍数时输出 "fizz"，`5`的倍数时输出 "buzz"，同时为`3`和`5`的倍数时输出 "fizzbuzz"。](#创建一个循环从1迭代到1003的倍数时输出-fizz5的倍数时输出-buzz同时为3和5的倍数时输出-fizzbuzz)
@@ -486,7 +491,7 @@ const template = `<div>My name is: ${name}</div>`;
 
 [[↑] 回到顶部](#js-问题)
 
-### 请解释变量提升（hosting）。
+### 请解释变量提升（hoisting）。
 
 变量提升（hoisting）是用于解释代码中变量声明行为的术语。使用`var`关键字声明或初始化的变量，会将声明语句“提升”到当前作用域的顶部。 但是，只有声明才会触发提升，赋值语句（如果有的话）将保持原样。我们用几个例子来解释一下。
 
@@ -1009,19 +1014,102 @@ baz = 'qux';
 
 ### ES6 的类和 ES5 的构造函数有什么区别？
 
-TODO
+让我们来看一个例子：
+
+```js
+// ES5 构造函数
+function Person(name) {
+  this.name = name;
+}
+
+// ES6 类
+class Person {
+  constructor(name) {
+    this.name = name;
+  }
+}
+```
+
+对于简单的构造函数而言，他们看起来很相似。
+
+他们的主要区别体现在类继承上。如果我们想要创建一个继承于 `Person` 父类的 `Student` 子类，并且添加一个 `studentId`  字段，我们需要做的修改如下：
+
+```js
+// ES5 构造函数
+function Student(name, studentId) {
+  // 调用父类的构造函数来初始化父类的成员变量
+  Person.call(this, name);
+
+  // 初始化子类自己的成员变量
+  this.studentId = studentId;
+}
+
+Student.prototype = Object.create(Person.prototype);
+Student.prototype.constructor = Student;
+
+// ES6 类
+class Student extends Person {
+  constructor(name, studentId) {
+    super(name);
+    this.studentId = studentId;
+  }
+}
+```
+
+从上面的例子我们可以看出来，使用 ES5 构造函数来实现继承特别麻烦，而使用 ES6 类的方式来实现就特别容易理解和记忆。
+
+###### 参考
+
+* https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Inheritance
+* https://eli.thegreenplace.net/2013/10/22/classical-inheritance-in-javascript-es5
 
 [[↑] 回到顶部](#js-问题)
 
 ### 你能给出一个使用箭头函数的例子吗，箭头函数与其他函数有什么不同？
 
-TODO
+一个很明显的优点就是箭头函数可以简化创建函数的语法，我们不需要在箭头函数前面加上 `function` 关键词。并且箭头函数的 `this` 会自动绑定到当前作用域的上下文中，这和普通的函数不一样。普通函数的 `this` 是在执行的时候才能确定的。箭头函数的这个特点对于回调函数来说特别有用，特别对于 React 组件而言。
 
 [[↑] 回到顶部](#js-问题)
 
 ### 在构造函数中使用箭头函数有什么好处？
 
-TODO
+在构造函数里使用箭头函数的主要优点是它的 `this` 只与箭头函数创建时的 `this` 保持一致，并且不会修改。所以，当用构造函数去创建一个新的对象的时候，箭头函数的 `this` 总是指向新创建的对象。比如，假设我们有一个 `Person` 构造函数，它接受一个 `firstName` 参数，并且它有两个方法去调用 `console.log` 这个 `firstName`，一个是正常的函数，而另一个则是箭头函数:
+
+```js
+const Person = function(firstName) {
+  this.firstName = firstName;
+  this.sayName1 = function() { console.log(this.firstName); };
+  this.sayName2 = () => { console.log(this.firstName); };
+};
+
+const john = new Person('John');
+const dave = new Person('Dave');
+
+john.sayName1(); // John
+john.sayName2(); // John
+
+// 普通函数的 this 可以被修改，而箭头函数则不会
+john.sayName1.call(dave); // Dave (因为 "this" 现在指向了 dave 对象)
+john.sayName2.call(dave); // John
+
+john.sayName1.apply(dave); // Dave (因为 "this" 现在指向了 dave 对象)
+john.sayName2.apply(dave); // John
+
+john.sayName1.bind(dave)(); // Dave (因为 "this" 现在指向了 dave 对象)
+john.sayName2.bind(dave)(); // John
+
+var sayNameFromWindow1 = john.sayName1;
+sayNameFromWindow1(); // undefined (因为 "this" 现在指向了 Window 对象)
+
+var sayNameFromWindow2 = john.sayName2;
+sayNameFromWindow2(); // John
+```
+
+这里主要的区别是，正常函数的 `this` 是可以在执行过程中被改变的，而箭头函数的 `this` 则会一直保持一致。所以在使用箭头函数的时候，你就不需要担心它的上下文被改变了。
+
+这在 React 的类组件里非常有用。如果你使用普通的函数来定义一个类方法，比如一个点击处理函数，然后你将这个点击处理函数通过 prop 的形式传递给子节点，你将必须在父组件的 `constroctor` 里使用 `fn.bind(this)` 的形式来确保该函数能正常工作。但是如果你使用箭头函数的话，你就不需要手动去绑定 `this` 了，因为箭头函数会自动绑定创建时的 `this`。
+
+(想看更好的演示以及示例代码，可以打开这篇文章: https://medium.com/@machnicki/handle-events-in-react-with-arrow-functions-ede88184bbb)
 
 [[↑] 回到顶部](#js-问题)
 
@@ -1209,7 +1297,7 @@ var result = [0, 1, 2, 3, 4, 5].map(addFive); // [5, 6, 7, 8, 9, 10]
 
 ### 使用扩展运算符（spread）的好处是什么，它与使用剩余参数语句（rest）有什么区别？
 
-在函数泛型编码时，ES6 的扩展运算符非常有用，因为我们可以轻松创建数组和对象的拷贝，而无需使用`Object.create`、`slice`或其他函数库。这个语言特性在 Redux 和 rx.js 的项目中经常用到。
+在函数泛型编码时，ES6 的扩展运算符非常有用，因为我们可以轻松创建数组和对象的拷贝，而无需使用`Object.create`、`slice`或其他函数库。这个语言特性在 Redux 和 RxJS 的项目中经常用到。
 
 ```js
 function putDookieInAnyArray(arr) {

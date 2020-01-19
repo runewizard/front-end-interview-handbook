@@ -1,6 +1,6 @@
 ## Mga Tanong sa JS
 
-Mga Sagot sa [Mga Tanong sa Pakikipanayam sa Trabahong Pangfront-end - Mga Tanong sa JS](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/questions/javascript-questions.md). Ang mga pull request para sa mga suhestyon at koreksyon ay malugod na tatanggapin
+Mga Sagot sa [Mga Tanong sa Pakikipanayam sa Trabahong Pangfront-end - Mga Tanong sa JS](https://github.com/h5bp/Front-end-Developer-Interview-Questions/blob/master/src/questions/javascript-questions.md). Ang mga pull request para sa mga suhestyon at koreksyon ay malugod na tatanggapin
 
 * [Ipaliwanag ang delegasyon ng kaganapan](#ipaliwanag-ang-delegasyon-ng-kaganapan)
 * [Ipaliwanag kung paano gumagana ang `this` na ito sa JavaScript](#ipaliwanag-kung-paano-gumagana-ang-this-na-ito-sa-javascript)
@@ -1108,7 +1108,7 @@ var result = [0, 1, 2, 3, 4, 5].map(addFive); // [5, 6, 7, 8, 9, 10]
 
 ### Ano ang mga pakinabang ng paggamit ng spread na sintaks at kung paano ito naiiba mula sa rest na sintaks?
 
-ES6's spread syntax is very useful when coding in a functional paradigm as we can easily create copies of arrays or objects without resorting to `Object.create`, `slice`, or a library function. This language feature is used often in Redux and rx.js projects.
+ES6's spread syntax is very useful when coding in a functional paradigm as we can easily create copies of arrays or objects without resorting to `Object.create`, `slice`, or a library function. This language feature is used often in Redux and RxJS projects.
 
 ```js
 function putDookieInAnyArray(arr) {
